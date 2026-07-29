@@ -51,8 +51,8 @@
       },
       {
         "signal": "additional_violations",
-        "points": 12,
-        "detail": "5 policy violations cited by the LLM"
+        "points": 8,
+        "detail": "3 policy violations cited by the LLM"
       }
     ],
     "ceilings": [
@@ -86,7 +86,7 @@
       "policy_adherence": "fail",
       "customer_helpfulness": "fail",
       "risk_level": "high",
-      "policy_violation_count": 5,
+      "policy_violation_count": 3,
       "mock": false
     },
     "rule_flags": [
@@ -106,7 +106,7 @@
       "LLM  -45: policy_adherence (LLM judged policy adherence: fail).",
       "LLM  -20: customer_helpfulness (LLM judged helpfulness: fail).",
       "LLM  -30: risk_level (LLM judged risk level: high).",
-      "LLM  -12: additional_violations (5 policy violations cited by the LLM).",
+      "LLM  -8: additional_violations (3 policy violations cited by the LLM).",
       "Ceiling 20 [BINDING]: sensitive_info_request — soliciting credentials is a severe breach and cannot be offset by tone.",
       "Ceiling 70 [not binding]: required_points_missing — missing required guidance reduces confidence below the pass line.",
       "Ceiling 30 [not binding]: llm_policy_adherence_fail — LLM judged a policy breach.",
@@ -121,14 +121,14 @@
   },
   {
     "case_id": "case_002",
-    "final_score": 27,
+    "final_score": 29,
     "final_status": "fail",
     "components": {
       "rule_score": 46,
-      "llm_score": 11,
+      "llm_score": 15,
       "rule_weight": 0.45,
       "llm_weight": 0.55,
-      "blended_score": 26.75,
+      "blended_score": 28.95,
       "applied_ceiling": 30
     },
     "rule_penalties": [
@@ -176,8 +176,8 @@
       },
       {
         "signal": "additional_violations",
-        "points": 12,
-        "detail": "4 policy violations cited by the LLM"
+        "points": 8,
+        "detail": "3 policy violations cited by the LLM"
       }
     ],
     "ceilings": [
@@ -206,7 +206,7 @@
       "policy_adherence": "fail",
       "customer_helpfulness": "fail",
       "risk_level": "medium",
-      "policy_violation_count": 4,
+      "policy_violation_count": 3,
       "mock": false
     },
     "rule_flags": [
@@ -218,8 +218,8 @@
     ],
     "explanation": [
       "Rule score 46/100 after 5 deterministic penalty(ies).",
-      "LLM score 11/100 after 4 judgment penalty(ies).",
-      "Blended = 0.45*46 + 0.55*11 = 26.8.",
+      "LLM score 15/100 after 4 judgment penalty(ies).",
+      "Blended = 0.45*46 + 0.55*15 = 28.9.",
       "Rule -2: absolute_guarantee (medium severity absolute language: instantly (hedging present, penalty reduced)).",
       "Rule -28: required_points_missing (2 of 2 required point(s) not evidenced: processing times vary; offer a next step if delay continues).",
       "Rule -8: too_short (72 chars < 80 threshold).",
@@ -228,12 +228,12 @@
       "LLM  -45: policy_adherence (LLM judged policy adherence: fail).",
       "LLM  -20: customer_helpfulness (LLM judged helpfulness: fail).",
       "LLM  -12: risk_level (LLM judged risk level: medium).",
-      "LLM  -12: additional_violations (4 policy violations cited by the LLM).",
+      "LLM  -8: additional_violations (3 policy violations cited by the LLM).",
       "Ceiling 70 [not binding]: required_points_missing — missing required guidance reduces confidence below the pass line.",
       "Ceiling 30 [BINDING]: llm_policy_adherence_fail — LLM judged a policy breach.",
       "Ceiling 55 [not binding]: llm_helpfulness_fail — LLM judged the answer unhelpful to the customer.",
       "Ceiling 72 [not binding]: llm_risk_medium — medium risk holds the score under the pass line.",
-      "Final score 27 -> status 'fail' (pass >= 80, review >= 50)."
+      "Final score 29 -> status 'fail' (pass >= 80, review >= 50)."
     ],
     "thresholds": {
       "pass": 80,

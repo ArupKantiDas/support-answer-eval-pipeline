@@ -22,12 +22,15 @@ from pathlib import Path
 from .pipeline import utc_now
 from .schema import LLM_EVALUATION_SCHEMA, SchemaError, validate
 
-DEFAULT_MODEL = os.environ.get("EVAL_MODEL", "claude-opus-5")
+DEFAULT_MODEL = os.environ.get("EVAL_MODEL", "claude-sonnet-5")
 DEFAULT_EFFORT = os.environ.get("EVAL_EFFORT", "medium")
 MAX_ATTEMPTS = int(os.environ.get("EVAL_MAX_ATTEMPTS", "3"))
 BACKOFF_BASE_SECONDS = float(os.environ.get("EVAL_BACKOFF_BASE", "1.0"))
 BACKOFF_MAX_SECONDS = float(os.environ.get("EVAL_BACKOFF_MAX", "8.0"))
-MAX_TOKENS = int(os.environ.get("EVAL_MAX_TOKENS", "2000"))
+# Headroom note: on Sonnet 5 adaptive thinking is on by default, and max_tokens
+# caps thinking *plus* response text. 4000 leaves room for both so a verdict
+# cannot be truncated mid-JSON (which would burn a retry).
+MAX_TOKENS = int(os.environ.get("EVAL_MAX_TOKENS", "4000"))
 
 LOG_FILE = "llm_calls.jsonl"
 

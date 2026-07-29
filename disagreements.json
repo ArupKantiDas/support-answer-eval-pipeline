@@ -13,10 +13,10 @@
     ],
     "llm_policy_adherence": "fail",
     "llm_policy_violations": [
-      "Promised immediate/instant deletion of data",
-      "Asserted an unqualified absolute claim that no record would remain",
-      "Omitted the required point that account closure follows a formal process",
-      "Omitted the required point that data handling may depend on applicable policy or regulation"
+      "Promised immediate deletion of account data, which is a disallowed action",
+      "Made an absolute, unverifiable claim about data retention/legal handling",
+      "Failed to state that account closure follows a formal process",
+      "Failed to note that data handling may depend on policy or regulation"
     ],
     "required_points_missing": [
       "closure follows formal process",

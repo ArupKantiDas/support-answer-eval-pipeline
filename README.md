@@ -106,12 +106,12 @@ Set these in `.env` or export them; exported values win.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | — | Presence selects real LLM mode; absence selects mock mode |
-| `EVAL_MODEL` | `claude-opus-5` | Model id |
+| `EVAL_MODEL` | `claude-sonnet-5` | Model id |
 | `EVAL_EFFORT` | `medium` | Reasoning effort (`low`…`max`) |
 | `EVAL_MAX_ATTEMPTS` | `3` | Attempts per case before the run fails |
 | `EVAL_BACKOFF_BASE` | `1.0` | First retry delay, seconds |
 | `EVAL_BACKOFF_MAX` | `8.0` | Retry delay ceiling, seconds |
-| `EVAL_MAX_TOKENS` | `2000` | `max_tokens` per call |
+| `EVAL_MAX_TOKENS` | `4000` | `max_tokens` per call (covers thinking + response) |
 
 ---
 
@@ -128,8 +128,8 @@ Set these in `.env` or export them; exported values win.
 | `disagreements.json` | Cases where deterministic and model risk assessments diverge |
 | `run_manifest.json` | Per-stage status and timings |
 
-The artifacts committed to this repo are from a **real `claude-opus-5` run**, so
-they can be inspected without a key. Re-running overwrites them.
+The artifacts committed to this repo are from a **real `claude-sonnet-5` run**,
+so they can be inspected without a key. Re-running overwrites them.
 
 ---
 
@@ -238,20 +238,25 @@ locally regardless.
 
 ### Observed behaviour on a real run
 
-The committed artifacts come from a live `claude-opus-5` run over the sample
-cases. Two things worth noting, because they were the design intent and the run
-confirmed them:
+The committed artifacts come from a live `claude-sonnet-5` run over the sample
+cases. Three things the run confirmed:
 
-- **The model contradicted the rule checks where they were wrong.** On
-  `case_001` it wrote: *"The keyword check found no matched disallowed actions,
-  but a plain reading shows a clear password request — the heuristic
-  under-flagged here."* That is the advisory framing working as designed, rather
-  than the model deferring to the deterministic layer.
-- **It produced a genuine disagreement.** On `case_003` the deterministic bands
-  reached `medium` while the model rated risk `high`, having read *"we will
-  delete everything instantly"* as an unqualified promise of immediate deletion —
-  a semantic judgment with no lexical overlap against the disallowed-action
-  list. That case is the sole row in `disagreements.json`.
+- **The model reasons semantically, not lexically.** On `case_003` it read
+  *"we will delete everything instantly"* as a promise of immediate deletion and
+  *"no record left at all"* as an unverifiable data claim — matching both
+  disallowed actions by meaning, with no lexical overlap for the keyword check
+  to find. That case is the sole row in `disagreements.json` (rules `medium`,
+  model `high`).
+- **Verdicts were stable across model tiers.** The same run on `claude-opus-5`
+  produced identical statuses and the same single disagreement; scores differed
+  by at most 2 points (`1 / 27 / 13` on Opus vs `1 / 29 / 13` on Sonnet), driven
+  only by how many violations each model itemised. On these cases Sonnet is the
+  better cost/quality point; set `EVAL_MODEL=claude-opus-5` to switch back.
+- **No retries were needed.** Three calls, three schema-valid structured
+  responses, validation clean at 16 passed / 0 warnings / 0 errors.
+
+One caveat on the second point: three cases is far too small a sample to
+conclude the tiers agree in general. It is a smoke test, not a model evaluation.
 
 ---
 
@@ -419,7 +424,8 @@ check rather than defending the numbers by argument.
 **Single sample per case.** One call, no self-consistency sampling. Cheaper and
 faster, but a borderline case can move between `warning` and `pass` across runs
 and cross a status boundary. Majority voting over 3 samples is the obvious
-upgrade if verdict stability matters more than cost.
+upgrade if verdict stability matters more than cost. The Sonnet and Opus runs
+agreeing on every status is mildly reassuring but proves nothing at n=3.
 
 Known limitations, and the specific false positives and false negatives each
 heuristic produces, are enumerated in the generated `report.md`.

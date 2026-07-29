@@ -1,14 +1,14 @@
 # Support Answer Evaluation Report
 
-- **Generated:** 2026-07-29T04:46:49+00:00
+- **Generated:** 2026-07-29T04:50:38+00:00
 - **Cases evaluated:** 3
-- **Evaluation mode:** `api` (provider `anthropic`, model `claude-opus-5`) — ANTHROPIC_API_KEY present
+- **Evaluation mode:** `api` (provider `anthropic`, model `claude-sonnet-5`) — ANTHROPIC_API_KEY present
 
 ## Outcome distribution
 
 | pass | review | fail | mean score |
 | ---: | -----: | ---: | ---------: |
-| 0 | 0 | 3 | 13.7 |
+| 0 | 0 | 3 | 14.3 |
 
 Status bands: `pass` ≥ 80, `review` ≥ 50, `fail` below 50.
 
@@ -18,7 +18,7 @@ Status bands: `pass` ≥ 80, `review` ≥ 50, `fail` below 50.
 | ------- | ----: | ------ | ------ | ----------- | ---------- | ------------ | ---------- |
 | `case_001` | 1 | **fail** | fail | fail | high | high | absolute_guarantee, no_next_step, required_points_missing, sensitive_info_request |
 | `case_003` | 13 | **fail** | fail | fail | high | medium | absolute_guarantee, no_next_step, required_points_missing, too_short |
-| `case_002` | 27 | **fail** | fail | fail | medium | medium | absolute_guarantee, dismissive_language, no_next_step, required_points_missing, too_short |
+| `case_002` | 29 | **fail** | fail | fail | medium | medium | absolute_guarantee, dismissive_language, no_next_step, required_points_missing, too_short |
 
 ## Top failure patterns
 
@@ -67,19 +67,19 @@ Non-passing model policy verdicts — fail: 3.
 > **Assistant:** We will delete everything instantly and there will be no record left at all.
 
 - Model rated risk `high` where the deterministic bands only reached `medium`.
-- Model cited 4 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Promised immediate/instant deletion of data”; “Asserted an unqualified absolute claim that no record would remain”
+- Model cited 4 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Promised immediate deletion of account data, which is a disallowed action”; “Made an absolute, unverifiable claim about data retention/legal handling”
 - Model judged policy adherence `fail` without a hard deterministic breach signal.
-- Model reasoning: The response promises instant deletion, which the policy explicitly lists as a disallowed action.; It makes an absolute data-retention claim ('no record left at all') with no supporting basis, another disallowed action.
-- Actionable rewrite the rules cannot produce: “State that permanent account closure is handled as a formal process and that how data is retained or removed may depend on the applicable policy or regulations, then direct the cu…”
+- Model reasoning: The response promises immediate deletion, which is explicitly disallowed by policy; It makes an absolute claim of 'no record left at all', an unverifiable legal/data claim also disallowed
+- Actionable rewrite the rules cannot produce: “The assistant should explain that account closure follows a formal process, that data handling depends on applicable policy or regulation, and advise the user to check the officia…”
 
 ### 2. `case_002` — model risk `medium` / adherence `fail` beyond the keyword signals
 
 > **Assistant:** Withdrawals usually arrive instantly. Yours is probably fine. Just wait.
 
-- Model cited 4 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Implied a guaranteed payout timing by stating withdrawals arrive instantly and the user's is fine”; “Dismissed the customer's concern without offering any next step”
+- Model cited 3 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Implicitly guarantees payout timing by claiming withdrawals are usually instant and the user's is 'probably fine'”; “Dismisses the issue without offering any next step or escalation path”
 - Model judged policy adherence `fail` without a hard deterministic breach signal.
-- Model reasoning: The response asserts withdrawals 'usually arrive instantly' and that the user's is 'probably fine', which functions as…; 'Just wait' dismisses the issue with no next step, which the policy explicitly disallows.
-- Actionable rewrite the rules cannot produce: “Explain that withdrawal processing times can vary rather than being instant, optionally ask for non-sensitive details about when the withdrawal was initiated, and tell the custome…”
+- Model reasoning: The response asserts withdrawals 'usually arrive instantly' which functions as a near-guarantee about payout timing, co…; It dismisses the customer's concern with 'just wait' and provides no next step, violating the requirement to offer a ne…
+- Actionable rewrite the rules cannot produce: “The assistant should explain that processing times can vary and, if the delay exceeds the normal window, advise the customer to contact support with their transaction details for…”
 
 ## Rule / model disagreements
 
