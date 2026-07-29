@@ -1,0 +1,125 @@
+{
+  "pipeline_version": 1,
+  "run_mode": "no-api",
+  "started_at": "2026-07-29T04:40:15+00:00",
+  "updated_at": "2026-07-29T04:40:15+00:00",
+  "stage_order": [
+    "INIT",
+    "CASES_LOADED",
+    "RULE_CHECKS_COMPLETE",
+    "LLM_EVAL_COMPLETE",
+    "SCORES_AGGREGATED",
+    "REPORT_GENERATED",
+    "VALIDATION_COMPLETE",
+    "RESULTS_FINALISED"
+  ],
+  "completed_stages": [
+    "INIT",
+    "CASES_LOADED",
+    "RULE_CHECKS_COMPLETE",
+    "LLM_EVAL_COMPLETE",
+    "SCORES_AGGREGATED",
+    "REPORT_GENERATED",
+    "VALIDATION_COMPLETE",
+    "RESULTS_FINALISED"
+  ],
+  "stages": [
+    {
+      "stage": "INIT",
+      "status": "complete",
+      "started_at": "2026-07-29T04:40:15+00:00",
+      "completed_at": "2026-07-29T04:40:15+00:00",
+      "details": {
+        "cases_file": "/Users/arupkantidas/Documents/Deriv/cases.json",
+        "evaluator_mode": "no-api",
+        "reason": "ANTHROPIC_API_KEY is not set"
+      }
+    },
+    {
+      "stage": "CASES_LOADED",
+      "status": "complete",
+      "started_at": "2026-07-29T04:40:15+00:00",
+      "completed_at": "2026-07-29T04:40:15+00:00",
+      "details": {
+        "case_count": 3,
+        "case_ids": [
+          "case_001",
+          "case_002",
+          "case_003"
+        ]
+      }
+    },
+    {
+      "stage": "RULE_CHECKS_COMPLETE",
+      "status": "complete",
+      "started_at": "2026-07-29T04:40:15+00:00",
+      "completed_at": "2026-07-29T04:40:15+00:00",
+      "details": {
+        "artifact": "rule_checks.json",
+        "flagged_cases": 3
+      }
+    },
+    {
+      "stage": "LLM_EVAL_COMPLETE",
+      "status": "complete",
+      "started_at": "2026-07-29T04:40:15+00:00",
+      "completed_at": "2026-07-29T04:40:15+00:00",
+      "details": {
+        "artifact": "llm_evaluations.json",
+        "call_log": "llm_calls.jsonl",
+        "evaluations": 3,
+        "provider": "mock",
+        "model": "rule-derived-mock-v1",
+        "mock": true
+      }
+    },
+    {
+      "stage": "SCORES_AGGREGATED",
+      "status": "complete",
+      "started_at": "2026-07-29T04:40:15+00:00",
+      "completed_at": "2026-07-29T04:40:15+00:00",
+      "details": {
+        "artifact": "final_scores.json",
+        "disagreements_artifact": "disagreements.json",
+        "computed_in": "code (scoring.py)",
+        "disagreement_count": 0
+      }
+    },
+    {
+      "stage": "REPORT_GENERATED",
+      "status": "complete",
+      "started_at": "2026-07-29T04:40:15+00:00",
+      "completed_at": "2026-07-29T04:40:15+00:00",
+      "details": {
+        "artifact": "report.md"
+      }
+    },
+    {
+      "stage": "VALIDATION_COMPLETE",
+      "status": "complete",
+      "started_at": "2026-07-29T04:40:15+00:00",
+      "completed_at": "2026-07-29T04:40:15+00:00",
+      "details": {
+        "passed": true
+      }
+    },
+    {
+      "stage": "RESULTS_FINALISED",
+      "status": "complete",
+      "started_at": "2026-07-29T04:40:15+00:00",
+      "completed_at": "2026-07-29T04:40:15+00:00",
+      "details": {
+        "artifacts": [
+          "cases.json",
+          "rule_checks.json",
+          "llm_evaluations.json",
+          "final_scores.json",
+          "report.md",
+          "llm_calls.jsonl",
+          "disagreements.json",
+          "run_manifest.json"
+        ]
+      }
+    }
+  ]
+}

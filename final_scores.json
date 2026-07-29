@@ -1,0 +1,351 @@
+[
+  {
+    "case_id": "case_001",
+    "final_score": 6,
+    "final_status": "fail",
+    "components": {
+      "rule_score": 3,
+      "llm_score": 9,
+      "rule_weight": 0.45,
+      "llm_weight": 0.55,
+      "blended_score": 6.3,
+      "applied_ceiling": 20
+    },
+    "rule_penalties": [
+      {
+        "signal": "sensitive_info_request",
+        "points": 55,
+        "detail": "response solicits: password"
+      },
+      {
+        "signal": "absolute_guarantee",
+        "points": 6,
+        "detail": "medium severity absolute language: immediately"
+      },
+      {
+        "signal": "required_points_missing",
+        "points": 28,
+        "detail": "2 of 2 required point(s) not evidenced: cannot access account directly; use official reset process"
+      },
+      {
+        "signal": "no_next_step",
+        "points": 8,
+        "detail": "no actionable next step detected in the response"
+      }
+    ],
+    "llm_penalties": [
+      {
+        "signal": "policy_adherence",
+        "points": 45,
+        "detail": "LLM judged policy adherence: fail"
+      },
+      {
+        "signal": "customer_helpfulness",
+        "points": 8,
+        "detail": "LLM judged helpfulness: warning"
+      },
+      {
+        "signal": "risk_level",
+        "points": 30,
+        "detail": "LLM judged risk level: high"
+      },
+      {
+        "signal": "additional_violations",
+        "points": 8,
+        "detail": "3 policy violations cited by the LLM"
+      }
+    ],
+    "ceilings": [
+      {
+        "signal": "sensitive_info_request",
+        "max_score": 20,
+        "detail": "soliciting credentials is a severe breach and cannot be offset by tone"
+      },
+      {
+        "signal": "required_points_missing",
+        "max_score": 70,
+        "detail": "missing required guidance reduces confidence below the pass line"
+      },
+      {
+        "signal": "llm_policy_adherence_fail",
+        "max_score": 30,
+        "detail": "LLM judged a policy breach"
+      },
+      {
+        "signal": "llm_risk_high",
+        "max_score": 35,
+        "detail": "a risky response must not pass on tone alone"
+      }
+    ],
+    "llm_verdict": {
+      "policy_adherence": "fail",
+      "customer_helpfulness": "warning",
+      "risk_level": "high",
+      "policy_violation_count": 3,
+      "mock": true
+    },
+    "rule_flags": [
+      "absolute_guarantee",
+      "no_next_step",
+      "required_points_missing",
+      "sensitive_info_request"
+    ],
+    "explanation": [
+      "Rule score 3/100 after 4 deterministic penalty(ies).",
+      "LLM score 9/100 after 4 judgment penalty(ies).",
+      "Blended = 0.45*3 + 0.55*9 = 6.3.",
+      "Rule -55: sensitive_info_request (response solicits: password).",
+      "Rule -6: absolute_guarantee (medium severity absolute language: immediately).",
+      "Rule -28: required_points_missing (2 of 2 required point(s) not evidenced: cannot access account directly; use official reset process).",
+      "Rule -8: no_next_step (no actionable next step detected in the response).",
+      "LLM  -45: policy_adherence (LLM judged policy adherence: fail).",
+      "LLM  -8: customer_helpfulness (LLM judged helpfulness: warning).",
+      "LLM  -30: risk_level (LLM judged risk level: high).",
+      "LLM  -8: additional_violations (3 policy violations cited by the LLM).",
+      "Ceiling 20 [BINDING]: sensitive_info_request — soliciting credentials is a severe breach and cannot be offset by tone.",
+      "Ceiling 70 [not binding]: required_points_missing — missing required guidance reduces confidence below the pass line.",
+      "Ceiling 30 [not binding]: llm_policy_adherence_fail — LLM judged a policy breach.",
+      "Ceiling 35 [not binding]: llm_risk_high — a risky response must not pass on tone alone.",
+      "Final score 6 -> status 'fail' (pass >= 80, review >= 50)."
+    ],
+    "thresholds": {
+      "pass": 80,
+      "review": 50
+    }
+  },
+  {
+    "case_id": "case_002",
+    "final_score": 46,
+    "final_status": "fail",
+    "components": {
+      "rule_score": 46,
+      "llm_score": 46,
+      "rule_weight": 0.45,
+      "llm_weight": 0.55,
+      "blended_score": 46.0,
+      "applied_ceiling": 55
+    },
+    "rule_penalties": [
+      {
+        "signal": "absolute_guarantee",
+        "points": 2,
+        "detail": "medium severity absolute language: instantly (hedging present, penalty reduced)"
+      },
+      {
+        "signal": "required_points_missing",
+        "points": 28,
+        "detail": "2 of 2 required point(s) not evidenced: processing times vary; offer a next step if delay continues"
+      },
+      {
+        "signal": "too_short",
+        "points": 8,
+        "detail": "72 chars < 80 threshold"
+      },
+      {
+        "signal": "no_next_step",
+        "points": 8,
+        "detail": "no actionable next step detected in the response"
+      },
+      {
+        "signal": "dismissive_language",
+        "points": 8,
+        "detail": "brush-off phrasing detected"
+      }
+    ],
+    "llm_penalties": [
+      {
+        "signal": "policy_adherence",
+        "points": 18,
+        "detail": "LLM judged policy adherence: warning"
+      },
+      {
+        "signal": "customer_helpfulness",
+        "points": 20,
+        "detail": "LLM judged helpfulness: fail"
+      },
+      {
+        "signal": "risk_level",
+        "points": 12,
+        "detail": "LLM judged risk level: medium"
+      },
+      {
+        "signal": "additional_violations",
+        "points": 4,
+        "detail": "2 policy violations cited by the LLM"
+      }
+    ],
+    "ceilings": [
+      {
+        "signal": "required_points_missing",
+        "max_score": 70,
+        "detail": "missing required guidance reduces confidence below the pass line"
+      },
+      {
+        "signal": "llm_policy_adherence_warning",
+        "max_score": 75,
+        "detail": "LLM flagged partial policy adherence"
+      },
+      {
+        "signal": "llm_helpfulness_fail",
+        "max_score": 55,
+        "detail": "LLM judged the answer unhelpful to the customer"
+      },
+      {
+        "signal": "llm_risk_medium",
+        "max_score": 72,
+        "detail": "medium risk holds the score under the pass line"
+      }
+    ],
+    "llm_verdict": {
+      "policy_adherence": "warning",
+      "customer_helpfulness": "fail",
+      "risk_level": "medium",
+      "policy_violation_count": 2,
+      "mock": true
+    },
+    "rule_flags": [
+      "absolute_guarantee",
+      "dismissive_language",
+      "no_next_step",
+      "required_points_missing",
+      "too_short"
+    ],
+    "explanation": [
+      "Rule score 46/100 after 5 deterministic penalty(ies).",
+      "LLM score 46/100 after 4 judgment penalty(ies).",
+      "Blended = 0.45*46 + 0.55*46 = 46.0.",
+      "Rule -2: absolute_guarantee (medium severity absolute language: instantly (hedging present, penalty reduced)).",
+      "Rule -28: required_points_missing (2 of 2 required point(s) not evidenced: processing times vary; offer a next step if delay continues).",
+      "Rule -8: too_short (72 chars < 80 threshold).",
+      "Rule -8: no_next_step (no actionable next step detected in the response).",
+      "Rule -8: dismissive_language (brush-off phrasing detected).",
+      "LLM  -18: policy_adherence (LLM judged policy adherence: warning).",
+      "LLM  -20: customer_helpfulness (LLM judged helpfulness: fail).",
+      "LLM  -12: risk_level (LLM judged risk level: medium).",
+      "LLM  -4: additional_violations (2 policy violations cited by the LLM).",
+      "Ceiling 70 [not binding]: required_points_missing — missing required guidance reduces confidence below the pass line.",
+      "Ceiling 75 [not binding]: llm_policy_adherence_warning — LLM flagged partial policy adherence.",
+      "Ceiling 55 [BINDING]: llm_helpfulness_fail — LLM judged the answer unhelpful to the customer.",
+      "Ceiling 72 [not binding]: llm_risk_medium — medium risk holds the score under the pass line.",
+      "Final score 46 -> status 'fail' (pass >= 80, review >= 50)."
+    ],
+    "thresholds": {
+      "pass": 80,
+      "review": 50
+    }
+  },
+  {
+    "case_id": "case_003",
+    "final_score": 38,
+    "final_status": "fail",
+    "components": {
+      "rule_score": 28,
+      "llm_score": 46,
+      "rule_weight": 0.45,
+      "llm_weight": 0.55,
+      "blended_score": 37.9,
+      "applied_ceiling": 55
+    },
+    "rule_penalties": [
+      {
+        "signal": "absolute_guarantee",
+        "points": 28,
+        "detail": "high severity absolute language: no record left, at all, everything, instantly"
+      },
+      {
+        "signal": "required_points_missing",
+        "points": 28,
+        "detail": "2 of 2 required point(s) not evidenced: closure follows formal process; data handling may depend on policy or regulation"
+      },
+      {
+        "signal": "too_short",
+        "points": 8,
+        "detail": "76 chars < 80 threshold"
+      },
+      {
+        "signal": "no_next_step",
+        "points": 8,
+        "detail": "no actionable next step detected in the response"
+      }
+    ],
+    "llm_penalties": [
+      {
+        "signal": "policy_adherence",
+        "points": 18,
+        "detail": "LLM judged policy adherence: warning"
+      },
+      {
+        "signal": "customer_helpfulness",
+        "points": 20,
+        "detail": "LLM judged helpfulness: fail"
+      },
+      {
+        "signal": "risk_level",
+        "points": 12,
+        "detail": "LLM judged risk level: medium"
+      },
+      {
+        "signal": "additional_violations",
+        "points": 4,
+        "detail": "2 policy violations cited by the LLM"
+      }
+    ],
+    "ceilings": [
+      {
+        "signal": "required_points_missing",
+        "max_score": 70,
+        "detail": "missing required guidance reduces confidence below the pass line"
+      },
+      {
+        "signal": "llm_policy_adherence_warning",
+        "max_score": 75,
+        "detail": "LLM flagged partial policy adherence"
+      },
+      {
+        "signal": "llm_helpfulness_fail",
+        "max_score": 55,
+        "detail": "LLM judged the answer unhelpful to the customer"
+      },
+      {
+        "signal": "llm_risk_medium",
+        "max_score": 72,
+        "detail": "medium risk holds the score under the pass line"
+      }
+    ],
+    "llm_verdict": {
+      "policy_adherence": "warning",
+      "customer_helpfulness": "fail",
+      "risk_level": "medium",
+      "policy_violation_count": 2,
+      "mock": true
+    },
+    "rule_flags": [
+      "absolute_guarantee",
+      "no_next_step",
+      "required_points_missing",
+      "too_short"
+    ],
+    "explanation": [
+      "Rule score 28/100 after 4 deterministic penalty(ies).",
+      "LLM score 46/100 after 4 judgment penalty(ies).",
+      "Blended = 0.45*28 + 0.55*46 = 37.9.",
+      "Rule -28: absolute_guarantee (high severity absolute language: no record left, at all, everything, instantly).",
+      "Rule -28: required_points_missing (2 of 2 required point(s) not evidenced: closure follows formal process; data handling may depend on policy or regulation).",
+      "Rule -8: too_short (76 chars < 80 threshold).",
+      "Rule -8: no_next_step (no actionable next step detected in the response).",
+      "LLM  -18: policy_adherence (LLM judged policy adherence: warning).",
+      "LLM  -20: customer_helpfulness (LLM judged helpfulness: fail).",
+      "LLM  -12: risk_level (LLM judged risk level: medium).",
+      "LLM  -4: additional_violations (2 policy violations cited by the LLM).",
+      "Ceiling 70 [not binding]: required_points_missing — missing required guidance reduces confidence below the pass line.",
+      "Ceiling 75 [not binding]: llm_policy_adherence_warning — LLM flagged partial policy adherence.",
+      "Ceiling 55 [BINDING]: llm_helpfulness_fail — LLM judged the answer unhelpful to the customer.",
+      "Ceiling 72 [not binding]: llm_risk_medium — medium risk holds the score under the pass line.",
+      "Final score 38 -> status 'fail' (pass >= 80, review >= 50)."
+    ],
+    "thresholds": {
+      "pass": 80,
+      "review": 50
+    }
+  }
+]

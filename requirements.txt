@@ -1,0 +1,6 @@
+# The pipeline runs end to end with the standard library alone (mock mode).
+# Install these only for real LLM evaluation / optional schema validation.
+
+anthropic>=0.40.0   # required for real LLM evaluation; unused in mock mode
+jsonschema>=4.0.0   # optional: used automatically if present, otherwise the
+                    # built-in validator in evalpipe/schema.py is used

@@ -1,0 +1,62 @@
+[
+  {
+    "case_id": "case_001",
+    "policy_adherence": "fail",
+    "customer_helpfulness": "warning",
+    "risk_level": "high",
+    "reasoning": [
+      "MOCK OUTPUT: derived from deterministic rule checks, not model judgment.",
+      "A sensitive term appears alongside a soliciting verb: password.",
+      "Absolute or unconditional language present: immediately.",
+      "No concrete next step is offered to the customer."
+    ],
+    "policy_violations": [
+      "Response solicits sensitive credentials from the user.",
+      "Required point not evidenced: cannot access account directly.",
+      "Required point not evidenced: use official reset process."
+    ],
+    "recommended_fix": "Rewrite to cover the policy's required points and drop the flagged language; specifically address: Response solicits sensitive credentials from the user.",
+    "mock": true,
+    "provider": "mock",
+    "model": "rule-derived-mock-v1"
+  },
+  {
+    "case_id": "case_002",
+    "policy_adherence": "warning",
+    "customer_helpfulness": "fail",
+    "risk_level": "medium",
+    "reasoning": [
+      "MOCK OUTPUT: derived from deterministic rule checks, not model judgment.",
+      "Absolute or unconditional language present: instantly.",
+      "Response uses brush-off phrasing.",
+      "No concrete next step is offered to the customer."
+    ],
+    "policy_violations": [
+      "Required point not evidenced: processing times vary.",
+      "Required point not evidenced: offer a next step if delay continues."
+    ],
+    "recommended_fix": "Rewrite to cover the policy's required points and drop the flagged language; specifically address: Required point not evidenced: processing times vary.",
+    "mock": true,
+    "provider": "mock",
+    "model": "rule-derived-mock-v1"
+  },
+  {
+    "case_id": "case_003",
+    "policy_adherence": "warning",
+    "customer_helpfulness": "fail",
+    "risk_level": "medium",
+    "reasoning": [
+      "MOCK OUTPUT: derived from deterministic rule checks, not model judgment.",
+      "Absolute or unconditional language present: no record left, at all, everything, instantly.",
+      "No concrete next step is offered to the customer."
+    ],
+    "policy_violations": [
+      "Required point not evidenced: closure follows formal process.",
+      "Required point not evidenced: data handling may depend on policy or regulation."
+    ],
+    "recommended_fix": "Rewrite to cover the policy's required points and drop the flagged language; specifically address: Required point not evidenced: closure follows formal process.",
+    "mock": true,
+    "provider": "mock",
+    "model": "rule-derived-mock-v1"
+  }
+]
