@@ -82,6 +82,26 @@ class SensitiveInfoTests(unittest.TestCase):
             with self.subTest(response=response):
                 self.assertTrue(check(response)["checks"]["sensitive_info_request"]["flagged"])
 
+    def test_negation_after_the_term_does_not_suppress(self):
+        """Regression: a later, unrelated 'never' must not cancel a real request.
+
+        'Please provide the verification code ... so you never have to deal with
+        this again' was silently cleared when the negation guard scanned the
+        whole sentence instead of only the text before the sensitive term.
+        """
+        response = (
+            "Please provide the verification code from your authenticator app and I "
+            "will disable two-factor authentication immediately so you never have to "
+            "deal with it again."
+        )
+        self.assertTrue(check(response)["checks"]["sensitive_info_request"]["flagged"])
+
+    def test_negation_before_the_term_still_suppresses(self):
+        self.assertFalse(
+            check("We will never ask you for your password or your one-time codes.")
+            ["checks"]["sensitive_info_request"]["flagged"]
+        )
+
 
 class AbsoluteLanguageTests(unittest.TestCase):
     def test_strong_terms_are_high_severity(self):

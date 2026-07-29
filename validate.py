@@ -38,8 +38,9 @@ REPORT_FILE = "report.md"
 CALL_LOG_FILE = "llm_calls.jsonl"
 DISAGREEMENTS_FILE = "disagreements.json"
 
+# cases.json may live outside the artifact directory (`--cases other.json
+# --outdir run2`), so it is resolved separately from the generated artifacts.
 REQUIRED_ARTIFACTS = [
-    CASES_FILE,
     RULE_CHECKS_FILE,
     LLM_EVALS_FILE,
     FINAL_SCORES_FILE,
@@ -61,11 +62,28 @@ CALL_LOG_REQUIRED_FIELDS = [
 
 
 class Validator:
-    def __init__(self, directory: Path) -> None:
+    def __init__(self, directory: Path, cases_path: Path | None = None) -> None:
         self.dir = directory
+        self.cases_path = self._resolve_cases_path(cases_path)
         self.errors: list[str] = []
         self.warnings: list[str] = []
         self.passed: list[str] = []
+
+    def _resolve_cases_path(self, explicit: Path | None) -> Path:
+        """Explicit flag wins, then the manifest's recorded input, then default."""
+        if explicit:
+            return Path(explicit).resolve()
+        manifest = self.dir / MANIFEST_FILE
+        if manifest.is_file():
+            try:
+                data = json.loads(manifest.read_text(encoding="utf-8"))
+                for record in data.get("stages", []):
+                    recorded = (record.get("details") or {}).get("cases_file")
+                    if record.get("stage") == "INIT" and recorded:
+                        return Path(recorded)
+            except (json.JSONDecodeError, OSError):
+                pass
+        return self.dir / CASES_FILE
 
     # -- reporting helpers -------------------------------------------------
     def ok(self, message: str) -> None:
@@ -78,7 +96,7 @@ class Validator:
         self.warnings.append(message)
 
     def _load_json(self, name: str):
-        path = self.dir / name
+        path = self.cases_path if name == CASES_FILE else self.dir / name
         try:
             return json.loads(path.read_text(encoding="utf-8"))
         except FileNotFoundError:
@@ -89,6 +107,13 @@ class Validator:
 
     # -- checks ------------------------------------------------------------
     def check_artifacts_exist(self) -> None:
+        if not self.cases_path.is_file():
+            self.fail(f"input case file missing: {self.cases_path}")
+        elif self.cases_path.stat().st_size == 0:
+            self.fail(f"input case file is empty: {self.cases_path}")
+        else:
+            self.ok(f"input case file present: {self.cases_path.name} "
+                    f"({self.cases_path.stat().st_size} bytes)")
         for name in REQUIRED_ARTIFACTS:
             path = self.dir / name
             if not path.exists():
@@ -342,6 +367,23 @@ class Validator:
         retries = len(records) - sum(successes.values())
         if retries:
             self.warn(f"{CALL_LOG_FILE}: {retries} failed attempt(s) were retried")
+
+        # Fallback detection: more than one model across successful calls means
+        # cases were not all judged by the same evaluator.
+        serving_models: list[str] = []
+        for record in records:
+            if record.get("status", "ok") == "ok":
+                name = record.get("model")
+                if name and name not in serving_models:
+                    serving_models.append(name)
+        if len(serving_models) > 1:
+            self.warn(
+                f"{CALL_LOG_FILE}: model fallback occurred — cases were served by "
+                f"{' then '.join(serving_models)}; verdicts are not strictly "
+                "comparable across cases"
+            )
+        elif serving_models:
+            self.ok(f"all cases served by a single model: {serving_models[0]}")
         self.ok(
             f"{len(records)} logged call(s) match the produced evaluations "
             f"({len(successes)} case(s), one success each)"
@@ -393,8 +435,12 @@ def _parse_ts(value):
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate pipeline artifacts.")
     parser.add_argument("--dir", default=".", help="directory containing the artifacts")
+    parser.add_argument("--cases", default=None,
+                        help="input case file (default: read from run_manifest.json, "
+                             "else <dir>/cases.json)")
     args = parser.parse_args(argv)
-    ok = Validator(Path(args.dir).resolve()).run()
+    cases = Path(args.cases).resolve() if args.cases else None
+    ok = Validator(Path(args.dir).resolve(), cases).run()
     return 0 if ok else 1
 
 

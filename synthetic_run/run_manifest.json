@@ -1,8 +1,8 @@
 {
   "pipeline_version": 1,
   "run_mode": "api",
-  "started_at": "2026-07-29T05:05:35+00:00",
-  "updated_at": "2026-07-29T05:05:53+00:00",
+  "started_at": "2026-07-29T05:05:54+00:00",
+  "updated_at": "2026-07-29T05:07:34+00:00",
   "stage_order": [
     "INIT",
     "CASES_LOADED",
@@ -27,10 +27,10 @@
     {
       "stage": "INIT",
       "status": "complete",
-      "started_at": "2026-07-29T05:05:35+00:00",
-      "completed_at": "2026-07-29T05:05:35+00:00",
+      "started_at": "2026-07-29T05:05:54+00:00",
+      "completed_at": "2026-07-29T05:05:54+00:00",
       "details": {
-        "cases_file": "/Users/arupkantidas/Documents/Deriv/cases.json",
+        "cases_file": "/Users/arupkantidas/Documents/Deriv/cases_2.json",
         "evaluator_mode": "api",
         "reason": "ANTHROPIC_API_KEY present; model chain: claude-sonnet-5 -> claude-haiku-4-5 -> claude-opus-5"
       }
@@ -38,36 +38,47 @@
     {
       "stage": "CASES_LOADED",
       "status": "complete",
-      "started_at": "2026-07-29T05:05:35+00:00",
-      "completed_at": "2026-07-29T05:05:35+00:00",
+      "started_at": "2026-07-29T05:05:54+00:00",
+      "completed_at": "2026-07-29T05:05:54+00:00",
       "details": {
-        "case_count": 3,
+        "case_count": 14,
         "case_ids": [
-          "case_001",
-          "case_002",
-          "case_003"
+          "syn_001_happy_password_reset",
+          "syn_002_happy_hedged_timing",
+          "syn_003_happy_negated_secret_mention",
+          "syn_004_fail_password_solicitation",
+          "syn_005_fail_otp_solicitation",
+          "syn_006_fail_guaranteed_payout",
+          "syn_007_fail_absolute_data_claim",
+          "syn_008_fail_dismissive_no_next_step",
+          "syn_009_fail_polite_but_empty",
+          "syn_010_fail_contradicts_required_point",
+          "syn_011_injection_in_user_message",
+          "syn_012_injection_echoed_in_response",
+          "syn_013_fail_invented_policy",
+          "syn_014_review_partial_coverage"
         ]
       }
     },
     {
       "stage": "RULE_CHECKS_COMPLETE",
       "status": "complete",
-      "started_at": "2026-07-29T05:05:35+00:00",
-      "completed_at": "2026-07-29T05:05:35+00:00",
+      "started_at": "2026-07-29T05:05:54+00:00",
+      "completed_at": "2026-07-29T05:05:54+00:00",
       "details": {
         "artifact": "rule_checks.json",
-        "flagged_cases": 3
+        "flagged_cases": 12
       }
     },
     {
       "stage": "LLM_EVAL_COMPLETE",
       "status": "complete",
-      "started_at": "2026-07-29T05:05:35+00:00",
-      "completed_at": "2026-07-29T05:05:53+00:00",
+      "started_at": "2026-07-29T05:05:54+00:00",
+      "completed_at": "2026-07-29T05:07:34+00:00",
       "details": {
         "artifact": "llm_evaluations.json",
         "call_log": "llm_calls.jsonl",
-        "evaluations": 3,
+        "evaluations": 14,
         "provider": "anthropic",
         "models_used": [
           "claude-sonnet-5"
@@ -79,20 +90,20 @@
     {
       "stage": "SCORES_AGGREGATED",
       "status": "complete",
-      "started_at": "2026-07-29T05:05:53+00:00",
-      "completed_at": "2026-07-29T05:05:53+00:00",
+      "started_at": "2026-07-29T05:07:34+00:00",
+      "completed_at": "2026-07-29T05:07:34+00:00",
       "details": {
         "artifact": "final_scores.json",
         "disagreements_artifact": "disagreements.json",
         "computed_in": "code (scoring.py)",
-        "disagreement_count": 2
+        "disagreement_count": 7
       }
     },
     {
       "stage": "REPORT_GENERATED",
       "status": "complete",
-      "started_at": "2026-07-29T05:05:53+00:00",
-      "completed_at": "2026-07-29T05:05:53+00:00",
+      "started_at": "2026-07-29T05:07:34+00:00",
+      "completed_at": "2026-07-29T05:07:34+00:00",
       "details": {
         "artifact": "report.md"
       }
@@ -100,8 +111,8 @@
     {
       "stage": "VALIDATION_COMPLETE",
       "status": "complete",
-      "started_at": "2026-07-29T05:05:53+00:00",
-      "completed_at": "2026-07-29T05:05:53+00:00",
+      "started_at": "2026-07-29T05:07:34+00:00",
+      "completed_at": "2026-07-29T05:07:34+00:00",
       "details": {
         "passed": true
       }
@@ -109,8 +120,8 @@
     {
       "stage": "RESULTS_FINALISED",
       "status": "complete",
-      "started_at": "2026-07-29T05:05:53+00:00",
-      "completed_at": "2026-07-29T05:05:53+00:00",
+      "started_at": "2026-07-29T05:07:34+00:00",
+      "completed_at": "2026-07-29T05:07:34+00:00",
       "details": {
         "artifacts": [
           "cases.json",

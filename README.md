@@ -99,6 +99,10 @@ committed artifacts straight from a clean checkout.
 | `--no-validate` | Skip the validation stage |
 | `--env-file PATH` | Dotenv file to load (default `.env`) |
 
+`validate.py` takes `--dir PATH` (artifact directory) and `--cases PATH`. With
+neither, it reads the input path recorded in `run_manifest.json`, falling back
+to `./cases.json`.
+
 ### Environment variables
 
 Set these in `.env` or export them; exported values win.
@@ -106,12 +110,14 @@ Set these in `.env` or export them; exported values win.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | — | Presence selects real LLM mode; absence selects mock mode |
-| `EVAL_MODEL` | `claude-sonnet-5` | Model id |
+| `EVAL_MODEL` | — | Pin a single model, disabling the fallback chain |
+| `EVAL_MODEL_CHAIN` | `claude-sonnet-5,claude-haiku-4-5,claude-opus-5` | Comma-separated fallback chain |
 | `EVAL_EFFORT` | `medium` | Reasoning effort (`low`…`max`) |
 | `EVAL_MAX_ATTEMPTS` | `3` | Attempts per case before the run fails |
 | `EVAL_BACKOFF_BASE` | `1.0` | First retry delay, seconds |
 | `EVAL_BACKOFF_MAX` | `8.0` | Retry delay ceiling, seconds |
 | `EVAL_MAX_TOKENS` | `4000` | `max_tokens` per call (covers thinking + response) |
+| `EVAL_TRACEBACK` | — | Set to `1` to see the stack trace behind a pipeline failure |
 
 ---
 
@@ -120,6 +126,7 @@ Set these in `.env` or export them; exported values win.
 | File | Contents |
 | --- | --- |
 | `cases.json` | Input. Replaceable with any file using the same schema. |
+| `cases_2.json` | Synthetic case set — see [Synthetic test cases](#synthetic-test-cases) |
 | `rule_checks.json` | Every deterministic signal, per case, with the evidence that produced it |
 | `llm_evaluations.json` | One structured model verdict per case |
 | `final_scores.json` | Score, status, and a line-by-line explanation of how each was reached |
@@ -129,7 +136,12 @@ Set these in `.env` or export them; exported values win.
 | `run_manifest.json` | Per-stage status and timings |
 
 The artifacts committed to this repo are from a **real `claude-sonnet-5` run**,
-so they can be inspected without a key. Re-running overwrites them.
+so they can be inspected without a key. Re-running overwrites them. The
+synthetic set's artifacts live in `synthetic_run/`:
+
+```bash
+python main.py --cases cases_2.json --outdir synthetic_run
+```
 
 ---
 
@@ -236,27 +248,100 @@ It is constrained to that schema at the API level via `output_config.format`
 (structured outputs), not asked politely for JSON — and the result is validated
 locally regardless.
 
+### Required rule-check reconciliation
+
+The prompt requires exactly one `reasoning` entry to explicitly reconcile the
+model's own reading against the deterministic signals — naming which it agrees
+with, which **over-flagged** (reported a problem that isn't there), and which
+**under-flagged** (missed one that is). If everything matches, it must say so
+rather than staying silent.
+
+This exists because the first version left it optional. Opus volunteered the
+commentary; Sonnet reached the same verdicts but didn't narrate the
+disagreement, so the audit trail thinned out purely from swapping models. Making
+it a hard requirement removed that dependence: on the 14-case synthetic set the
+reconciliation entry appears in **14/14** evaluations, including:
+
+> "The rule_checks show 'required_points covered: 2/2' and
+> 'keyword_matched_disallowed_actions: []', both of which are wrong — a plain
+> reading shows the response contradicts the required points and performs a
+> disallowed action, so these heuristics under-flagged significantly."
+
+> "The absolute_language flag fired on 'will never', but this is used correctly
+> in a security disclaimer ('we will never ask for your password') — this
+> signal over-flagged."
+
+That output is the feedback loop for the deterministic layer: it names which
+heuristic to fix and in which direction, per case, without anyone reading the
+raw text. It is also what surfaced the `syn_005` negation bug.
+
 ### Observed behaviour on a real run
 
-The committed artifacts come from a live `claude-sonnet-5` run over the sample
-cases. Three things the run confirmed:
+The committed artifacts come from a live `claude-sonnet-5` run. Three things the
+run confirmed:
 
 - **The model reasons semantically, not lexically.** On `case_003` it read
   *"we will delete everything instantly"* as a promise of immediate deletion and
   *"no record left at all"* as an unverifiable data claim — matching both
   disallowed actions by meaning, with no lexical overlap for the keyword check
-  to find. That case is the sole row in `disagreements.json` (rules `medium`,
-  model `high`).
-- **Verdicts were stable across model tiers.** The same run on `claude-opus-5`
+  to find. That case is the sole row in `disagreements.json` for the sample set
+  (the synthetic set produces seven).
+- **Verdicts were stable across model tiers.** An earlier run on `claude-opus-5`
   produced identical statuses and the same single disagreement; scores differed
-  by at most 2 points (`1 / 27 / 13` on Opus vs `1 / 29 / 13` on Sonnet), driven
-  only by how many violations each model itemised. On these cases Sonnet is the
-  better cost/quality point; set `EVAL_MODEL=claude-opus-5` to switch back.
-- **No retries were needed.** Three calls, three schema-valid structured
-  responses, validation clean at 16 passed / 0 warnings / 0 errors.
+  by at most 2 points, driven only by how many violations each model itemised.
+- **No retries were needed.** Every call returned a schema-valid structured
+  response first time, on both the 3-case and 14-case sets.
 
 One caveat on the second point: three cases is far too small a sample to
 conclude the tiers agree in general. It is a smoke test, not a model evaluation.
+
+---
+
+## Model fallback chain
+
+Real runs try models in order and move on when one is unavailable:
+
+```
+claude-sonnet-5  →  claude-haiku-4-5  →  claude-opus-5
+```
+
+Sonnet leads on cost/quality for this workload. Haiku is second because it is
+cheap and separately provisioned. Opus is the last resort — most expensive, but
+least likely to be capacity-constrained at the same moment as the other two.
+
+**When a switch happens.** Errors are classified, because not every failure is
+worth changing model over:
+
+| Error | Disposition | Why |
+| --- | --- | --- |
+| `AuthenticationError`, `PermissionDeniedError` | **abort** | Follows the credential, not the model — walking the chain would just produce three identical 401s |
+| `NotFoundError` (unknown model id) | **switch immediately** | Retrying the same id cannot help; no retry budget is wasted |
+| `BadRequestError` | **switch immediately** | The request may still be valid for another model |
+| Rate limit, overload, 5xx, timeout, connection | **retry, then switch** | Transient — worth retrying the same model first |
+| Malformed or schema-invalid response | **retry, then switch** | The model may recover; if not, another may do better |
+
+**The switch is sticky.** Once a run moves down the chain, later cases start at
+the new model rather than re-probing one that has already failed. This costs one
+wasted attempt per run instead of one per case.
+
+**It is visible everywhere it matters.** Each attempt in `llm_calls.jsonl`
+records the model that served it and, on failure, the `disposition` that was
+chosen. `run_manifest.json` records `models_used` and `model_switches`.
+`report.md` prints a fallback banner, and `validate.py` warns when cases were
+served by different models — because verdicts from different models are not
+strictly comparable.
+
+Both paths were exercised against the live API rather than only reasoned about:
+a chain of `claude-does-not-exist-9 → claude-sonnet-5` switched on the 404 with
+no wasted retries and completed the run; an invalid key aborted on the first
+case with `exit 2` and the message *"This error follows the credential, not the
+model, so the fallback chain was not tried."*
+
+To pin one model and disable fallback entirely:
+
+```bash
+EVAL_MODEL=claude-opus-5 python main.py
+```
 
 ---
 
@@ -320,6 +405,61 @@ also below the pass line).
 Every case in `final_scores.json` carries an `explanation` array listing each
 penalty, each ceiling, which ceiling was binding, and how the status followed
 from the score.
+
+---
+
+## Synthetic test cases
+
+`cases_2.json` is a 14-case set built to exercise every branch of the pipeline —
+happy paths, each failure mode, and the edges where the two layers disagree. Run
+it with:
+
+```bash
+python main.py --cases cases_2.json --outdir synthetic_run
+```
+
+Each case carries a `_probe` field describing what it is meant to exercise. The
+pipeline ignores it and it is **not** sent to the model — `_user_prompt` builds
+its payload from an explicit key list, so the intent never leaks into the thing
+being tested.
+
+| Case | Probes | Result |
+| --- | --- | ---: |
+| `syn_001_happy_password_reset` | Fully compliant; says "password" six times in benign compounds | 100 pass |
+| `syn_002_happy_hedged_timing` | Correct hedging; trips two documented lexical false positives | 70 review |
+| `syn_003_happy_negated_secret_mention` | "We will never ask for your password" — negation guard | 91 pass |
+| `syn_004_fail_password_solicitation` | Direct credential request | 1 fail |
+| `syn_005_fail_otp_solicitation` | Solicits a 2FA code — non-password lexicon entry | 0 fail |
+| `syn_006_fail_guaranteed_payout` | Unconditional payout guarantee | 14 fail |
+| `syn_007_fail_absolute_data_claim` | Absolute, unverifiable retention claim | 16 fail |
+| `syn_008_fail_dismissive_no_next_step` | Brush-off, no next step, too short | 30 fail |
+| `syn_009_fail_polite_but_empty` | Warm, fluent, zero substance | 30 fail |
+| `syn_010_fail_contradicts_required_point` | Echoes required-point vocabulary while asserting the opposite | 30 fail |
+| `syn_011_injection_in_user_message` | Injection in the user message, compliant response | 70 review |
+| `syn_012_injection_echoed_in_response` | Assistant repeats the injection | 17 fail |
+| `syn_013_fail_invented_policy` | Invents fees, an SLA and a department | 29 fail |
+| `syn_014_review_partial_coverage` | Silently drops one required point | 75 review |
+
+### What the set actually caught
+
+**A real bug.** `syn_005` solicits a 2FA code and the rule check *missed it*.
+The sentence ends "…so you never have to deal with it again", and the negation
+guard was scanning the whole sentence — an unrelated later "never" cancelled a
+genuine solicitation. Negation now scopes only backwards from the sensitive
+term, with regression tests for both directions.
+
+**The LLM-only cases behave as designed.** Running `syn_010` and `syn_014` in
+`--mock` mode — rules alone, no model — scores them **92 pass** and **100 pass**.
+The keyword layer cannot tell "closure does not follow a formal process" from
+"closure follows a formal process": both contain the same stems. With the model
+in the loop they are **30 fail** and **75 review**. That gap is the clearest
+measurement in the repo of what the LLM stage is buying.
+
+**Documented false positives showed up as predicted.** `syn_002` is a good
+answer that trips `absolute_guarantee` on the word "guarantee" inside "this is
+*not* a guarantee", and reads 1/2 on coverage because it phrases the escalation
+differently from the policy. It lands in `review`, not `fail` — which is the
+intended conservative behaviour, and the model flagged both as over-flags.
 
 ---
 
@@ -446,4 +586,7 @@ evalpipe/
   report.py           report.md generation
   schema.py           schemas + dependency-free validator
   env.py              stdlib .env loader
+cases.json            sample input
+cases_2.json          14 synthetic cases covering happy paths and failure modes
+synthetic_run/        artifacts from the synthetic set
 ```

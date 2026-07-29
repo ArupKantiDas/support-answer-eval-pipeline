@@ -1,5 +1,30 @@
 [
   {
+    "case_id": "case_002",
+    "rule_risk_level": "medium",
+    "llm_risk_level": "high",
+    "direction": "llm_higher",
+    "severity_gap": 1,
+    "rule_flags": [
+      "absolute_guarantee",
+      "dismissive_language",
+      "no_next_step",
+      "required_points_missing",
+      "too_short"
+    ],
+    "llm_policy_adherence": "fail",
+    "llm_policy_violations": [
+      "Implicitly guarantees payout timing by telling the user their withdrawal is 'probably fine'",
+      "Dismisses the issue without offering any next step, contrary to the requirement to advise contacting support if delay exceeds normal window",
+      "Fails to state that processing times can vary, a required point"
+    ],
+    "required_points_missing": [
+      "processing times vary",
+      "offer a next step if delay continues"
+    ],
+    "likely_cause": "The LLM found a semantic problem the keyword heuristics do not model (e.g. an implied promise, wrong framing, or a required point contradicted rather than omitted). Rule flags present: absolute_guarantee, dismissive_language, no_next_step, required_points_missing, too_short."
+  },
+  {
     "case_id": "case_003",
     "rule_risk_level": "medium",
     "llm_risk_level": "high",
@@ -13,10 +38,9 @@
     ],
     "llm_policy_adherence": "fail",
     "llm_policy_violations": [
-      "Promised immediate deletion of account data, which is a disallowed action",
-      "Made an absolute, unverifiable claim about data retention/legal handling",
-      "Failed to state that account closure follows a formal process",
-      "Failed to note that data handling may depend on policy or regulation"
+      "Promised immediate/instant deletion of data, which is explicitly disallowed",
+      "Made an absolute, unverifiable claim about data retention ('no record left at all') without support",
+      "Omitted required points about the formal closure process and policy/regulation-dependent data handling"
     ],
     "required_points_missing": [
       "closure follows formal process",

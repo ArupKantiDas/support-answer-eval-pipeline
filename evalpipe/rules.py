@@ -311,6 +311,8 @@ def check_sensitive_info_request(response: str) -> dict:
     found_terms = [t for t in SENSITIVE_TERMS if _contains(norm, normalise(t))]
     sentences = [normalise(s) for s in re.split(r"[.!?\n]+", response) if s.strip()]
 
+    negation_re = re.compile(r"\b(never|not|won'?t|do not|don'?t|cannot|can'?t|no need)\b")
+
     hits: list[dict] = []
     for sentence in sentences:
         terms_here = [
@@ -320,10 +322,22 @@ def check_sensitive_info_request(response: str) -> dict:
         ]
         if not terms_here:
             continue
-        # A negated promise ("we will never ask for your password") is not a request.
-        negated = re.search(r"\b(never|not|won'?t|do not|don'?t|cannot|can'?t|no need)\b", sentence)
         verbs = [p for p in SOLICIT_PATTERNS if re.search(p, sentence)]
-        if verbs and not negated:
+        if not verbs:
+            continue
+        # A negated promise ("we will never ask for your password") is not a
+        # request. Negation only scopes FORWARD, so it must appear before the
+        # sensitive term to cancel it — otherwise an unrelated later clause
+        # ("...so you never have to deal with it again") would suppress a
+        # genuine solicitation earlier in the same sentence.
+        first_term_at = min(
+            m.start()
+            for t in terms_here
+            for m in [re.search(r"(?<![a-z0-9])" + re.escape(normalise(t)) + r"(?![a-z0-9])", sentence)]
+            if m
+        )
+        negated = bool(negation_re.search(sentence[:first_term_at]))
+        if not negated:
             hits.append({"sentence": sentence, "terms": terms_here})
 
     return {

@@ -9,6 +9,7 @@ set ANTHROPIC_API_KEY for real LLM evaluation.
 from __future__ import annotations
 
 import argparse
+import os
 import json
 import subprocess
 import sys
@@ -112,15 +113,28 @@ def main(argv: list[str] | None = None) -> int:
         rule_results=rule_results,
         evaluator=evaluator,
         outdir=outdir,
-        input_artifacts=[CASES_FILE, RULE_CHECKS_FILE],
+        input_artifacts=[cases_path.name, RULE_CHECKS_FILE],
         output_artifact=LLM_EVALS_FILE,
     )
     write_json(outdir / LLM_EVALS_FILE, evaluations)
+    # Order-preserving list of the models that actually served a case. Longer
+    # than one entry means the fallback chain kicked in mid-run.
+    models_used: list[str] = []
+    for evaluation in evaluations:
+        name = evaluation.get("model")
+        if name and name not in models_used:
+            models_used.append(name)
+    switch_log = list(getattr(evaluator, "switch_log", []))
     pipe.complete("LLM_EVAL_COMPLETE", artifact=LLM_EVALS_FILE,
                   call_log=llm_mod.LOG_FILE, evaluations=len(evaluations),
-                  provider=evaluator.provider, model=evaluator.model, mock=run_mode != "api")
+                  provider=evaluator.provider, models_used=models_used,
+                  model_switches=switch_log, mock=run_mode != "api")
     print(f"[{utc_now()}] llm evaluations -> {LLM_EVALS_FILE} "
-          f"({len(evaluations)} call(s) logged in {llm_mod.LOG_FILE})")
+          f"({len(evaluations)} call(s) logged in {llm_mod.LOG_FILE}; "
+          f"model(s): {', '.join(models_used) or evaluator.model})")
+    if switch_log:
+        for switch in switch_log:
+            print(f"  ! model fallback: {switch['from']} -> {switch['to']}")
 
     # -- SCORES_AGGREGATED --------------------------------------------------
     pipe.enter("SCORES_AGGREGATED")
@@ -149,7 +163,9 @@ def main(argv: list[str] | None = None) -> int:
         disagreement_rows=disagreement_rows,
         run_mode=run_mode,
         provider=evaluator.provider,
-        model=evaluator.model,
+        model=" -> ".join(models_used) or evaluator.model,
+        models_used=models_used,
+        switch_log=switch_log,
         mode_reason=mode_reason,
     )
     (outdir / REPORT_FILE).write_text(report, encoding="utf-8")
@@ -163,7 +179,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[{utc_now()}] validation skipped (--no-validate)")
     else:
         proc = subprocess.run(
-            [sys.executable, str(Path(__file__).parent / "validate.py"), "--dir", str(outdir)],
+            [sys.executable, str(Path(__file__).parent / "validate.py"),
+             "--dir", str(outdir), "--cases", str(cases_path)],
             capture_output=True,
             text=True,
         )
@@ -182,13 +199,23 @@ def main(argv: list[str] | None = None) -> int:
     ])
 
     print()
-    print(f"{'case_id':<12} {'score':>5}  status")
+    width = max([len(s["case_id"]) for s in scores] + [len("case_id")])
+    print(f"{'case_id':<{width}}  {'score':>5}  status")
     for score in scores:
-        print(f"{score['case_id']:<12} {score['final_score']:>5}  {score['final_status']}")
+        print(f"{score['case_id']:<{width}}  {score['final_score']:>5}  {score['final_status']}")
     print()
     print(f"[{utc_now()}] RESULTS_FINALISED — {len(scores)} case(s) evaluated in {run_mode} mode")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except (RuntimeError, StageError) as exc:
+        # Pipeline-level failures (exhausted model chain, bad credential, stage
+        # violation) get a readable message rather than a stack trace. Set
+        # EVAL_TRACEBACK=1 to see the original traceback.
+        if os.environ.get("EVAL_TRACEBACK"):
+            raise
+        print(f"\nERROR: {exc}", file=sys.stderr)
+        raise SystemExit(2) from None

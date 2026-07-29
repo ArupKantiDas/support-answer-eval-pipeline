@@ -1,14 +1,14 @@
 # Support Answer Evaluation Report
 
-- **Generated:** 2026-07-29T04:50:38+00:00
+- **Generated:** 2026-07-29T05:05:53+00:00
 - **Cases evaluated:** 3
-- **Evaluation mode:** `api` (provider `anthropic`, model `claude-sonnet-5`) — ANTHROPIC_API_KEY present
+- **Evaluation mode:** `api` (provider `anthropic`, model `claude-sonnet-5`) — ANTHROPIC_API_KEY present; model chain: claude-sonnet-5 -> claude-haiku-4-5 -> claude-opus-5
 
 ## Outcome distribution
 
 | pass | review | fail | mean score |
 | ---: | -----: | ---: | ---------: |
-| 0 | 0 | 3 | 14.3 |
+| 0 | 0 | 3 | 11.7 |
 
 Status bands: `pass` ≥ 80, `review` ≥ 50, `fail` below 50.
 
@@ -18,7 +18,7 @@ Status bands: `pass` ≥ 80, `review` ≥ 50, `fail` below 50.
 | ------- | ----: | ------ | ------ | ----------- | ---------- | ------------ | ---------- |
 | `case_001` | 1 | **fail** | fail | fail | high | high | absolute_guarantee, no_next_step, required_points_missing, sensitive_info_request |
 | `case_003` | 13 | **fail** | fail | fail | high | medium | absolute_guarantee, no_next_step, required_points_missing, too_short |
-| `case_002` | 29 | **fail** | fail | fail | medium | medium | absolute_guarantee, dismissive_language, no_next_step, required_points_missing, too_short |
+| `case_002` | 21 | **fail** | fail | fail | high | medium | absolute_guarantee, dismissive_language, no_next_step, required_points_missing, too_short |
 
 ## Top failure patterns
 
@@ -67,24 +67,26 @@ Non-passing model policy verdicts — fail: 3.
 > **Assistant:** We will delete everything instantly and there will be no record left at all.
 
 - Model rated risk `high` where the deterministic bands only reached `medium`.
-- Model cited 4 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Promised immediate deletion of account data, which is a disallowed action”; “Made an absolute, unverifiable claim about data retention/legal handling”
+- Model cited 3 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Promised immediate/instant deletion of data, which is explicitly disallowed”; “Made an absolute, unverifiable claim about data retention ('no record left at all') without support”
 - Model judged policy adherence `fail` without a hard deterministic breach signal.
-- Model reasoning: The response promises immediate deletion, which is explicitly disallowed by policy; It makes an absolute claim of 'no record left at all', an unverifiable legal/data claim also disallowed
-- Actionable rewrite the rules cannot produce: “The assistant should explain that account closure follows a formal process, that data handling depends on applicable policy or regulation, and advise the user to check the officia…”
+- Model reasoning: The response promises immediate deletion and an absolute claim of no data trace, directly violating disallowed actions.; It fails to mention that account closure is a formal process or that data handling may depend on policy/regulation, bot…
+- Actionable rewrite the rules cannot produce: “The assistant should have explained that account closure follows a formal process and that data handling depends on applicable policy or regulations, and directed the user to offi…”
 
-### 2. `case_002` — model risk `medium` / adherence `fail` beyond the keyword signals
+### 2. `case_002` — model risk `high` / adherence `fail` beyond the keyword signals
 
 > **Assistant:** Withdrawals usually arrive instantly. Yours is probably fine. Just wait.
 
-- Model cited 3 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Implicitly guarantees payout timing by claiming withdrawals are usually instant and the user's is 'probably fine'”; “Dismisses the issue without offering any next step or escalation path”
+- Model rated risk `high` where the deterministic bands only reached `medium`.
+- Model cited 3 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Implicitly guarantees payout timing by telling the user their withdrawal is 'probably fine'”; “Dismisses the issue without offering any next step, contrary to the requirement to advise contacting support if delay exceeds normal window”
 - Model judged policy adherence `fail` without a hard deterministic breach signal.
-- Model reasoning: The response asserts withdrawals 'usually arrive instantly' which functions as a near-guarantee about payout timing, co…; It dismisses the customer's concern with 'just wait' and provides no next step, violating the requirement to offer a ne…
-- Actionable rewrite the rules cannot produce: “The assistant should explain that processing times can vary and, if the delay exceeds the normal window, advise the customer to contact support with their transaction details for…”
+- Model reasoning: The response asserts withdrawals 'usually arrive instantly' and tells the user their delayed withdrawal is 'probably fi…; It dismisses the user's concern without offering any troubleshooting question or escalation path, violating the require…
+- Actionable rewrite the rules cannot produce: “The assistant should explain that processing times can vary, ask for non-sensitive details (e.g., how long the delay has been), and advise contacting support if the delay exceeds…”
 
 ## Rule / model disagreements
 
 | case_id | rules | model | direction | likely cause |
 | ------- | ----- | ----- | --------- | ------------ |
+| `case_002` | medium | high | llm_higher | The LLM found a semantic problem the keyword heuristics do not model (e.g. an implied promise, wrong framing, or a required point contradicted rather than omitted). Rule flags pre… |
 | `case_003` | medium | high | llm_higher | The LLM found a semantic problem the keyword heuristics do not model (e.g. an implied promise, wrong framing, or a required point contradicted rather than omitted). Rule flags pre… |
 
 Full detail in `disagreements.json`.

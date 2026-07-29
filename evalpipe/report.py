@@ -43,6 +43,8 @@ def build_report(
     provider: str,
     model: str,
     mode_reason: str,
+    models_used: list[str] | None = None,
+    switch_log: list[dict] | None = None,
 ) -> str:
     cases_by_id = {c["case_id"]: c for c in cases}
     evals_by_id = {e["case_id"]: e for e in evaluations}
@@ -57,6 +59,22 @@ def build_report(
     a(f"- **Generated:** {utc_now()}")
     a(f"- **Cases evaluated:** {len(scores)}")
     a(f"- **Evaluation mode:** `{run_mode}` (provider `{provider}`, model `{model}`) — {mode_reason}")
+    if switch_log:
+        mixed = len(models_used or []) > 1
+        a("")
+        a("> ⚠️ **Model fallback occurred during this run.**")
+        for switch in switch_log:
+            a(f">   - `{switch['from']}` → `{switch['to']}` — "
+              f"{_md_escape(_truncate(switch.get('reason', ''), 200))}")
+        a(">")
+        if mixed:
+            a("> Cases in this run were served by more than one model "
+              f"({', '.join(f'`{m}`' for m in models_used)}), so verdicts are **not "
+              "strictly comparable across cases**.")
+        else:
+            a("> Every case that produced a verdict was still served by a single "
+              f"model (`{(models_used or ['unknown'])[0]}`), so verdicts remain "
+              "comparable — the switch happened before any case was evaluated.")
     if is_mock:
         a("")
         a("> ⚠️ **MOCK RUN.** No LLM was called. The `policy_adherence`, "
