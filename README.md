@@ -19,37 +19,75 @@ evaluation are both finished.
 
 ---
 
-## Quick start
+## Quick start (no setup, no API key)
 
 ```bash
 python main.py
 ```
 
-That's it. No dependencies, no API key needed — the pipeline runs end to end in
-**mock mode** and writes every artifact.
-
-To validate artifacts independently (no key, no network):
+That's it. No virtualenv, no dependencies, no API key — the pipeline runs end to
+end in **mock mode** and writes every artifact. Same for validation and tests:
 
 ```bash
 python validate.py
-```
-
-To run the regression tests:
-
-```bash
 python test_pipeline.py
-```
-
-For real LLM evaluation:
-
-```bash
-pip install anthropic
-export ANTHROPIC_API_KEY=sk-ant-...
-python main.py
 ```
 
 **Requirements:** Python 3.9+. Everything except the optional `anthropic` client
 is standard library.
+
+## Real LLM evaluation
+
+### 1. Create and activate a virtualenv
+
+```bash
+python3 -m venv .venv
+```
+
+```bash
+source .venv/bin/activate
+```
+
+On Windows use `.venv\Scripts\activate` instead. To leave the venv later, run
+`deactivate`.
+
+### 2. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Provide an API key
+
+Create a `.env` file in the project root:
+
+```bash
+echo 'ANTHROPIC_API_KEY=sk-ant-your-key-here' > .env
+```
+
+`.env` is listed in `.gitignore` and is never committed. `main.py` loads it via
+a small stdlib loader (`evalpipe/env.py`) — no `python-dotenv` dependency. Only
+the variable *names* it loaded are printed; values are never logged.
+
+An exported environment variable takes precedence over the file, so this also
+works and needs no `.env` at all:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-... python main.py
+```
+
+### 4. Run
+
+```bash
+python main.py
+```
+
+The pipeline reports its mode on the first line. `mode=api` means real model
+calls; `mode=no-api` means the mock evaluator (see [Mock mode](#mock-mode)).
+
+Everything the venv is needed for is the `anthropic` client. `validate.py` never
+needs a key, a network connection, or any dependency — it can be run against the
+committed artifacts straight from a clean checkout.
 
 ### CLI options
 
@@ -59,8 +97,11 @@ is standard library.
 | `--outdir PATH` | Where artifacts are written (default `.`) |
 | `--mock` | Force the mock evaluator even when a key is present |
 | `--no-validate` | Skip the validation stage |
+| `--env-file PATH` | Dotenv file to load (default `.env`) |
 
 ### Environment variables
+
+Set these in `.env` or export them; exported values win.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -87,8 +128,8 @@ is standard library.
 | `disagreements.json` | Cases where deterministic and model risk assessments diverge |
 | `run_manifest.json` | Per-stage status and timings |
 
-The artifacts committed to this repo are from a **mock-mode** run, so they can be
-inspected without a key. Re-running with a key overwrites them.
+The artifacts committed to this repo are from a **real `claude-opus-5` run**, so
+they can be inspected without a key. Re-running overwrites them.
 
 ---
 
@@ -194,6 +235,23 @@ The model returns exactly this shape:
 It is constrained to that schema at the API level via `output_config.format`
 (structured outputs), not asked politely for JSON — and the result is validated
 locally regardless.
+
+### Observed behaviour on a real run
+
+The committed artifacts come from a live `claude-opus-5` run over the sample
+cases. Two things worth noting, because they were the design intent and the run
+confirmed them:
+
+- **The model contradicted the rule checks where they were wrong.** On
+  `case_001` it wrote: *"The keyword check found no matched disallowed actions,
+  but a plain reading shows a clear password request — the heuristic
+  under-flagged here."* That is the advisory framing working as designed, rather
+  than the model deferring to the deterministic layer.
+- **It produced a genuine disagreement.** On `case_003` the deterministic bands
+  reached `medium` while the model rated risk `high`, having read *"we will
+  delete everything instantly"* as an unqualified promise of immediate deletion —
+  a semantic judgment with no lexical overlap against the disallowed-action
+  list. That case is the sole row in `disagreements.json`.
 
 ---
 
@@ -381,4 +439,5 @@ evalpipe/
   scoring.py          score aggregation + disagreement analysis (no LLM)
   report.py           report.md generation
   schema.py           schemas + dependency-free validator
+  env.py              stdlib .env loader
 ```

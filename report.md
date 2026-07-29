@@ -1,16 +1,14 @@
 # Support Answer Evaluation Report
 
-- **Generated:** 2026-07-29T04:40:15+00:00
+- **Generated:** 2026-07-29T04:46:49+00:00
 - **Cases evaluated:** 3
-- **Evaluation mode:** `no-api` (provider `mock`, model `rule-derived-mock-v1`) — ANTHROPIC_API_KEY is not set
-
-> ⚠️ **MOCK RUN.** No LLM was called. The `policy_adherence`, `customer_helpfulness`, and `risk_level` verdicts below were derived from the deterministic rule checks by the fallback evaluator, not by a model. Model-judgment findings in this report are therefore not independent evidence. Set `ANTHROPIC_API_KEY` and re-run for a real evaluation.
+- **Evaluation mode:** `api` (provider `anthropic`, model `claude-opus-5`) — ANTHROPIC_API_KEY present
 
 ## Outcome distribution
 
 | pass | review | fail | mean score |
 | ---: | -----: | ---: | ---------: |
-| 0 | 0 | 3 | 30.0 |
+| 0 | 0 | 3 | 13.7 |
 
 Status bands: `pass` ≥ 80, `review` ≥ 50, `fail` below 50.
 
@@ -18,9 +16,9 @@ Status bands: `pass` ≥ 80, `review` ≥ 50, `fail` below 50.
 
 | case_id | score | status | policy | helpfulness | risk (LLM) | risk (rules) | rule flags |
 | ------- | ----: | ------ | ------ | ----------- | ---------- | ------------ | ---------- |
-| `case_001` | 6 | **fail** | fail | warning | high | high | absolute_guarantee, no_next_step, required_points_missing, sensitive_info_request |
-| `case_003` | 38 | **fail** | warning | fail | medium | medium | absolute_guarantee, no_next_step, required_points_missing, too_short |
-| `case_002` | 46 | **fail** | warning | fail | medium | medium | absolute_guarantee, dismissive_language, no_next_step, required_points_missing, too_short |
+| `case_001` | 1 | **fail** | fail | fail | high | high | absolute_guarantee, no_next_step, required_points_missing, sensitive_info_request |
+| `case_003` | 13 | **fail** | fail | fail | high | medium | absolute_guarantee, no_next_step, required_points_missing, too_short |
+| `case_002` | 27 | **fail** | fail | fail | medium | medium | absolute_guarantee, dismissive_language, no_next_step, required_points_missing, too_short |
 
 ## Top failure patterns
 
@@ -33,7 +31,7 @@ Status bands: `pass` ≥ 80, `review` ≥ 50, `fail` below 50.
 | Response solicits sensitive information (`sensitive_info_request`) | 1 | 33% |
 | Dismissive phrasing (`dismissive_language`) | 1 | 33% |
 
-Non-passing model policy verdicts — warning: 2, fail: 1.
+Non-passing model policy verdicts — fail: 3.
 
 ## Where deterministic checks caught something important
 
@@ -47,7 +45,7 @@ Non-passing model policy verdicts — warning: 2, fail: 1.
 - `required_points` coverage 0/2; not evidenced: `cannot access account directly`; `use official reset process`
 - `absolute_guarantee` (medium severity) on: `immediately`.
 - `next_step` found no actionable follow-up for the customer.
-- Final: **6 / fail** (ceiling applied: 20).
+- Final: **1 / fail** (ceiling applied: 20).
 - Caught in code, with no model call and no per-case tuning: the same check runs identically on any case file with this schema.
 
 ### 2. `case_003` — required policy guidance missing
@@ -59,34 +57,37 @@ Non-passing model policy verdicts — warning: 2, fail: 1.
 - `required_points` coverage 0/2; not evidenced: `closure follows formal process`; `data handling may depend on policy or regulation`
 - `absolute_guarantee` (high severity) on: `no record left, at all, everything, instantly`.
 - `next_step` found no actionable follow-up for the customer.
-- Final: **38 / fail** (ceiling applied: 55).
+- Final: **13 / fail** (ceiling applied: 30).
 - Caught in code, with no model call and no per-case tuning: the same check runs identically on any case file with this schema.
 
 ## Where LLM judgment added value beyond keyword checks
 
-### 1. `case_003` — model risk `medium` / adherence `warning` beyond the keyword signals
+### 1. `case_003` — model risk `high` / adherence `fail` beyond the keyword signals
 
 > **Assistant:** We will delete everything instantly and there will be no record left at all.
 
-- Model cited 2 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Required point not evidenced: closure follows formal process.”; “Required point not evidenced: data handling may depend on policy or regulation.”
-- Model judged policy adherence `warning` without a hard deterministic breach signal.
-- Model reasoning: MOCK OUTPUT: derived from deterministic rule checks, not model judgment.; Absolute or unconditional language present: no record left, at all, everything, instantly.
-- Actionable rewrite the rules cannot produce: “Rewrite to cover the policy's required points and drop the flagged language; specifically address: Required point not evidenced: closure follows formal process.”
+- Model rated risk `high` where the deterministic bands only reached `medium`.
+- Model cited 4 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Promised immediate/instant deletion of data”; “Asserted an unqualified absolute claim that no record would remain”
+- Model judged policy adherence `fail` without a hard deterministic breach signal.
+- Model reasoning: The response promises instant deletion, which the policy explicitly lists as a disallowed action.; It makes an absolute data-retention claim ('no record left at all') with no supporting basis, another disallowed action.
+- Actionable rewrite the rules cannot produce: “State that permanent account closure is handled as a formal process and that how data is retained or removed may depend on the applicable policy or regulations, then direct the cu…”
 
-### 2. `case_002` — model risk `medium` / adherence `warning` beyond the keyword signals
+### 2. `case_002` — model risk `medium` / adherence `fail` beyond the keyword signals
 
 > **Assistant:** Withdrawals usually arrive instantly. Yours is probably fine. Just wait.
 
-- Model cited 2 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Required point not evidenced: processing times vary.”; “Required point not evidenced: offer a next step if delay continues.”
-- Model judged policy adherence `warning` without a hard deterministic breach signal.
-- Model reasoning: MOCK OUTPUT: derived from deterministic rule checks, not model judgment.; Absolute or unconditional language present: instantly.
-- Actionable rewrite the rules cannot produce: “Rewrite to cover the policy's required points and drop the flagged language; specifically address: Required point not evidenced: processing times vary.”
-
-> Note: in mock mode these observations are rule-derived, so this section demonstrates the mechanism rather than genuine model insight.
+- Model cited 4 policy violation(s) with no lexical overlap against the disallowed-action list — a semantic read, not a keyword match: “Implied a guaranteed payout timing by stating withdrawals arrive instantly and the user's is fine”; “Dismissed the customer's concern without offering any next step”
+- Model judged policy adherence `fail` without a hard deterministic breach signal.
+- Model reasoning: The response asserts withdrawals 'usually arrive instantly' and that the user's is 'probably fine', which functions as…; 'Just wait' dismisses the issue with no next step, which the policy explicitly disallows.
+- Actionable rewrite the rules cannot produce: “Explain that withdrawal processing times can vary rather than being instant, optionally ask for non-sensitive details about when the withdrawal was initiated, and tell the custome…”
 
 ## Rule / model disagreements
 
-Deterministic and model risk levels agreed on every case. `disagreements.json` is present and empty.
+| case_id | rules | model | direction | likely cause |
+| ------- | ----- | ----- | --------- | ------------ |
+| `case_003` | medium | high | llm_higher | The LLM found a semantic problem the keyword heuristics do not model (e.g. an implied promise, wrong framing, or a required point contradicted rather than omitted). Rule flags pre… |
+
+Full detail in `disagreements.json`.
 
 ## Known limitations, false positives and false negatives
 

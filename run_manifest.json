@@ -1,8 +1,8 @@
 {
   "pipeline_version": 1,
-  "run_mode": "no-api",
-  "started_at": "2026-07-29T04:40:15+00:00",
-  "updated_at": "2026-07-29T04:40:15+00:00",
+  "run_mode": "api",
+  "started_at": "2026-07-29T04:46:21+00:00",
+  "updated_at": "2026-07-29T04:46:49+00:00",
   "stage_order": [
     "INIT",
     "CASES_LOADED",
@@ -27,19 +27,19 @@
     {
       "stage": "INIT",
       "status": "complete",
-      "started_at": "2026-07-29T04:40:15+00:00",
-      "completed_at": "2026-07-29T04:40:15+00:00",
+      "started_at": "2026-07-29T04:46:21+00:00",
+      "completed_at": "2026-07-29T04:46:21+00:00",
       "details": {
         "cases_file": "/Users/arupkantidas/Documents/Deriv/cases.json",
-        "evaluator_mode": "no-api",
-        "reason": "ANTHROPIC_API_KEY is not set"
+        "evaluator_mode": "api",
+        "reason": "ANTHROPIC_API_KEY present"
       }
     },
     {
       "stage": "CASES_LOADED",
       "status": "complete",
-      "started_at": "2026-07-29T04:40:15+00:00",
-      "completed_at": "2026-07-29T04:40:15+00:00",
+      "started_at": "2026-07-29T04:46:21+00:00",
+      "completed_at": "2026-07-29T04:46:21+00:00",
       "details": {
         "case_count": 3,
         "case_ids": [
@@ -52,8 +52,8 @@
     {
       "stage": "RULE_CHECKS_COMPLETE",
       "status": "complete",
-      "started_at": "2026-07-29T04:40:15+00:00",
-      "completed_at": "2026-07-29T04:40:15+00:00",
+      "started_at": "2026-07-29T04:46:21+00:00",
+      "completed_at": "2026-07-29T04:46:21+00:00",
       "details": {
         "artifact": "rule_checks.json",
         "flagged_cases": 3
@@ -62,34 +62,34 @@
     {
       "stage": "LLM_EVAL_COMPLETE",
       "status": "complete",
-      "started_at": "2026-07-29T04:40:15+00:00",
-      "completed_at": "2026-07-29T04:40:15+00:00",
+      "started_at": "2026-07-29T04:46:21+00:00",
+      "completed_at": "2026-07-29T04:46:49+00:00",
       "details": {
         "artifact": "llm_evaluations.json",
         "call_log": "llm_calls.jsonl",
         "evaluations": 3,
-        "provider": "mock",
-        "model": "rule-derived-mock-v1",
-        "mock": true
+        "provider": "anthropic",
+        "model": "claude-opus-5",
+        "mock": false
       }
     },
     {
       "stage": "SCORES_AGGREGATED",
       "status": "complete",
-      "started_at": "2026-07-29T04:40:15+00:00",
-      "completed_at": "2026-07-29T04:40:15+00:00",
+      "started_at": "2026-07-29T04:46:49+00:00",
+      "completed_at": "2026-07-29T04:46:49+00:00",
       "details": {
         "artifact": "final_scores.json",
         "disagreements_artifact": "disagreements.json",
         "computed_in": "code (scoring.py)",
-        "disagreement_count": 0
+        "disagreement_count": 1
       }
     },
     {
       "stage": "REPORT_GENERATED",
       "status": "complete",
-      "started_at": "2026-07-29T04:40:15+00:00",
-      "completed_at": "2026-07-29T04:40:15+00:00",
+      "started_at": "2026-07-29T04:46:49+00:00",
+      "completed_at": "2026-07-29T04:46:49+00:00",
       "details": {
         "artifact": "report.md"
       }
@@ -97,8 +97,8 @@
     {
       "stage": "VALIDATION_COMPLETE",
       "status": "complete",
-      "started_at": "2026-07-29T04:40:15+00:00",
-      "completed_at": "2026-07-29T04:40:15+00:00",
+      "started_at": "2026-07-29T04:46:49+00:00",
+      "completed_at": "2026-07-29T04:46:49+00:00",
       "details": {
         "passed": true
       }
@@ -106,8 +106,8 @@
     {
       "stage": "RESULTS_FINALISED",
       "status": "complete",
-      "started_at": "2026-07-29T04:40:15+00:00",
-      "completed_at": "2026-07-29T04:40:15+00:00",
+      "started_at": "2026-07-29T04:46:49+00:00",
+      "completed_at": "2026-07-29T04:46:49+00:00",
       "details": {
         "artifacts": [
           "cases.json",

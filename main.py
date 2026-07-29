@@ -17,6 +17,7 @@ from pathlib import Path
 from evalpipe import llm as llm_mod
 from evalpipe import rules as rules_mod
 from evalpipe import scoring as scoring_mod
+from evalpipe.env import load_dotenv
 from evalpipe.pipeline import Pipeline, StageError, utc_now
 from evalpipe.report import build_report
 from evalpipe.schema import CASE_SCHEMA, SchemaError, validate
@@ -66,10 +67,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--outdir", default=".", help="artifact output directory (default: .)")
     parser.add_argument("--mock", action="store_true", help="force the mock evaluator")
     parser.add_argument("--no-validate", action="store_true", help="skip the validation stage")
+    parser.add_argument("--env-file", default=".env", help="dotenv file to load (default: .env)")
     args = parser.parse_args(argv)
 
     outdir = Path(args.outdir).resolve()
     cases_path = Path(args.cases).resolve()
+
+    # Load .env before selecting the evaluator. Only variable NAMES are ever
+    # printed — values are never logged.
+    loaded = load_dotenv(args.env_file)
+    if loaded:
+        print(f"[{utc_now()}] loaded {len(loaded)} variable(s) from {args.env_file}: "
+              f"{', '.join(sorted(loaded))}")
 
     evaluator, run_mode, mode_reason = llm_mod.select_evaluator(force_mock=args.mock)
     pipe = Pipeline(outdir, run_mode)

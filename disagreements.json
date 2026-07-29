@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "case_id": "case_003",
+    "rule_risk_level": "medium",
+    "llm_risk_level": "high",
+    "direction": "llm_higher",
+    "severity_gap": 1,
+    "rule_flags": [
+      "absolute_guarantee",
+      "no_next_step",
+      "required_points_missing",
+      "too_short"
+    ],
+    "llm_policy_adherence": "fail",
+    "llm_policy_violations": [
+      "Promised immediate/instant deletion of data",
+      "Asserted an unqualified absolute claim that no record would remain",
+      "Omitted the required point that account closure follows a formal process",
+      "Omitted the required point that data handling may depend on applicable policy or regulation"
+    ],
+    "required_points_missing": [
+      "closure follows formal process",
+      "data handling may depend on policy or regulation"
+    ],
+    "likely_cause": "The LLM found a semantic problem the keyword heuristics do not model (e.g. an implied promise, wrong framing, or a required point contradicted rather than omitted). Rule flags present: absolute_guarantee, no_next_step, required_points_missing, too_short."
+  }
+]
